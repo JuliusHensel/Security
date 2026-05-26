@@ -1,0 +1,17 @@
+Recon notes
+  1) create a multiplex Sock to my jump/demo box:
+    ssh -MS /tmp/demo1 demo1@10.50.11.252
+  2) Use port forwarding to establsih proxychains:
+    ssh -S /tmp/demo1 demo1 -O forward -D 9050
+  3) Utilize ping sweep to find target hosts:
+    for i in {1..254}; do (ping -c 1 10.208.50.$i | grep "bytes from" &); done
+  4) Enumerate hosts and possible web services:
+    proxychains nmap -T5 -Pn -sV -n 10.208.50.42,61 2>/dev/null
+    proxychains nmap -sT -T5 --script=http-enum 10.208.50.42,61 2>/dev/null
+  5) Build unto your port forward to include discovered hosts
+    ssh -S /tmp/demo1 demo1 -O forward -D9050 -L1234:10.208.50.42:22 -L1235:10.208.50.42:80 .....
+  6) tear down proychains
+    ssh -S /tmp/demo1 demo1 -O cancel -D 9050
+  7) create new MS into t1
+    ssh -MS /tmp/t1 -D9050 student@127.0.0.1 -p 1234
+  8) Repeat from step 3
