@@ -1,0 +1,37 @@
+##  Class Notes  ##
+Pwn Testing method
+  Phase 1:  Mission Def
+    Define Mission and scope
+    Define Network and valid target
+    Define Exploits and RoE
+  Phase 2:  Recon
+    Osint (Passive Enurmration)!!
+      i.e googling
+  Phase 3:  Footprinting
+    Accumlate data from interacting with target (Active Enumeration)
+      i.e nmap
+  Phase 4:  Exploitation/Intial Access
+  Phase 5:  Post-Exploitation
+    establish persistance
+    escalte privileges
+    cover your tracks
+    exfiltrate target data
+
+Exploitation research
+  just research potential exploits for the box
+    cve and exploit-db
+
+Advanced  Scanning Techniques
+  Host Discovery
+  Port Enumeration
+  Port Interrogation
+
+8 step guide for ssh tunneling
+  1. ssh to jump
+  2. Build Socket
+    ssh -M -S /tmp/jump student@<jump_ip> -NT -Fn
+      2a. ssh -S /tmp/jump ping() forward -D 9050
+  3.  Enumerate
+    for i in {1..254}, do (ping -c 1 x.x.x.x, | grep "byte from"& ), done
+  4.  Host Enumeration
+    proxychains nmap -T5 -Pn -Sv -n x.x.x.x
