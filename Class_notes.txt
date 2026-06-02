@@ -35,3 +35,17 @@ Advanced  Scanning Techniques
     for i in {1..254}, do (ping -c 1 x.x.x.x, | grep "byte from"& ), done
   4.  Host Enumeration
     proxychains nmap -T5 -Pn -Sv -n x.x.x.x
+
+
+
+1) SSH to jump
+ssh -MS /tmp/jmp user@ip
+2) Build Socket
+ssh -S /tmp/jmp jump -O forward -D 9050
+3) Enumerate target network
+for i in {1..254};do {pig -c 1 x.x.x.$i | grep "bytes from"&);done
+4) Host enumerationn
+proxychains nmap -T5 -Pn -sV -n <target host>
+
+
+
