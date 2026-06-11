@@ -1,0 +1,87 @@
+
+                        POST X
+================================================================================
+METHOD:
+  1)  USR - check for account that have shells, home folders, special permissions
+  2)  PROC  -  check services that may be connceted to folders that have flags or potial ssh tunnels
+  3)  SERV  -  look for poteial execuatbles where you could launch a buffer overflow attack or dll hijacking
+  4)  NET  -  look potial targets and ports transmiting information
+  5)  ADD  -  look for more information related to target or victim
+
+keywords   -  secret,  flag,  hint,  password,  pass,  victim,  bad,  evil,  exploit, network,  map,  server,  message,  note,  key,  script.
+
+
+WIN USR
+net user                           - Displays a list of local users by username
+net user <username>                - Displays properties associated with that username
+net localgroup                     - Displays a list of local groups on the system
+net localgroup <groupName>         - Provides a description of what the local group can do with a list of members in that group
+wmic useraccount get name,sid      - This command displays the Security IDs (SIDs) of all user accounts on the system. If you know the username, use this command: wmic useraccount where name="USER" get sid
+
+LIN USER
+cat /etc/passwd **OR** getent passwd - List of all users/accounts on the local system by name, user-id, comment, home directory, and shell.
+cat /etc/shadow                    - List of all users/accounts on the system along with their hashed passwd, password age, and  expiration information.
+last                                 - History of previous account login/logout by username, terminal (local, remote), system/IP, date/time of login/logout, and duration.
+who                                  - Who is currently logged into the system by name, terminal (local/remote), date/time they logged in, and IP address if remote.
+w                                  - Who is currently logged into the system by username, terminal, and what they are doing.
+whoami                             - Displays the user name of the user running the command
+groups                             - Displays the list of groups to which the user running the command is a member
+id                                 - Displays the username, userid, group name(s), and groupid(s) of the user running the command
+
+WIN PROC
+tasklist /v                                                                                                          - Displays "verbose" list of all running applications and services with their Process ID (PID).
+wmic /node:localhost /namespace:\\root\securitycenter2 path antivirusproduct get displayname /format:list          - This will return a list of all installed AV products from the local machine:
+wmic process where (processid=#) get parentprocessid,commandline                                                   - Display processes parent PID and command line
+
+LIN PROC
+ps -elf                              - View every process on the system in long format using standard UNIX syntax.
+ps auxf                              - View every process on the system in forest view using BSD syntax.
+pstree                             - Display a tree of processes. Forest view with the "ps" command tries to mimic this output to a certain degree.
+lsof                                 - List open files. Everything in UNIX/Linux is a file (to a certain degree). The lsof enumerates open files and can provide information on pretty much all the activity on a system to include networking.  Some of the common arguments with this command are files associated with a process-ID  "-p PID", and internet "-i".
+
+WIN SERV
+tasklist /svc                                              - Displays services hosted in each process.
+net start                                                  - Displays a list of services that have been started by their display name
+wmic service list status                                     - Displays name and status of services.
+Get-Service \ | Where {$_.Status -eq "Running"}              - PowerShell method of determining running services. Displays Name and DisplayName.
+
+LIN SERV
+chkconfig                                                  - SystemV method of listing all installed services
+systemctl list-units --type service                        - Systemd method of listing all installed services
+service --status-all                                       - SystemV method of listing running services.
+systemctl list-units --type=service | grep running        - Systemd method of listing running services
+
+WIN NET
+ipconfig /all               - Display local interface information to include IP address/mask, MAC address, default router/gateway, and DNS settings.
+netstat /anob               - Displays local listening ports, process-id and binary.
+wmic netuse list full       - Displays: AccessMask, Comment, ConnectionState, ConnectionType, Description, DisplayType, InstallDate, LocalName, Name, Persistent, ProviderName, RemoteName, RemotePath, ResourceType, Status, UserName
+net use                     - NET USE connects a computer to a shared resource or disconnects a computer from a shared resource. When used without options, it lists the computer's connections.
+net view                    - Displays a list of resources being shared on the system. When used without options, it displays a list of computers in the current domain or network.
+arp -a                      - Displays the arp cache on the system.
+route print                 - Displays the system's routing table.
+
+LIN NET
+ip address **OR** ifconfig -a                 - Displays all interfaces on the system and their current configuration and status.
+ss **OR** netstat                             - Displays network connections/sockets.
+
+Options:
+-a - displays all listening and non-listening ports
+-l - displays only listening ports
+-n - displays numeric IP addresses and ports
+-p - displays process-id and program name (for root only)
+-u - displays UDP sockets
+-t - displays TCP sockets
+
+arp -an                                     - Displays the arp cache on the system with numeric IPs instead of hostname.
+ip route **OR** route **OR** netstat -r         - Displays the system's routing table.
+
+WIN ADD
+systeminfo              - lists info about the system you are on such as OS, OS version, product ID, processor(s), BIOS version, input locale, time zone, domain, hotfix(s), network card(s)
+date /t && time /t      - displays the current system date and time
+
+LIN ADD
+cat /proc/cpuinfo       - displays information about the CPU such as model name, vendor id, CPU MHz
+cat /etc/*rel*         - displays OS information like the name, version, home URL, and support URL
+cat /etc/hosts          - displays any locally configured hostnames
+lsmod
+
